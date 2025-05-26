@@ -4,7 +4,7 @@ It will automatically obtain the command window width and output a delimiter wit
 
 ## python edition
 
-code file: printline.py
+code file: [printline.py](https://github.com/franklin-gaoxy/tools/blob/main/src/printline/printline.py)
 
 ### instructions
 
