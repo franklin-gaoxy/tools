@@ -6,4 +6,4 @@
 
 [printline](https://github.com/franklin-gaoxy/tools/blob/main/src/printline/readme.md)
 
-[host info](https://github.com/franklin-gaoxy/hostinfo)
+[simulate host usage tools](https://github.com/franklin-gaoxy/tools/tree/main/src/simulate%20host%20usage)

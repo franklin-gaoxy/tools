@@ -38,4 +38,24 @@ Flags:
 
 ## disk and io
 
-None
+```shell
+root@zijie:~/workspace/test# ./main disk 
+Error: failed to create directory: mkdir : no such file or directory
+Usage:
+  run disk [flags]
+
+Flags:
+  -h, --help          help for disk
+  -p, --path string   Directory path to write files
+  -s, --size int      Size of each file in GB (default 2)
+  -t, --time int      Duration in minutes (0 for infinite)
+
+failed to create directory: mkdir : no such file or directory
+root@zijie:~/workspace/test# 
+```
+
+> Can increase the number of disk writes
+>
+> At least the - p path parameter needs to be specified.
+>
+> Temporary files will be created in this directory and manually deleted after execution.
