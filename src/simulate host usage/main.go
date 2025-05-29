@@ -52,13 +52,22 @@ func BondCobra() {
 		Run: func(cmd *cobra.Command, args []string) {
 			src.SimulateUseMemory(cmd, args)
 		},
-		Args: cobra.MaximumNArgs(1),
+		Args: cobra.MaximumNArgs(0),
+	}
+
+	// simulate disk
+	SUDisk := &cobra.Command{
+		Use:   "disk",
+		Short: "simulate use disk",
+		RunE:  src.SimulateUseDisk,
+		Args:  cobra.MaximumNArgs(0),
 	}
 
 	// bond command
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(runCPU)
 	rootCmd.AddCommand(SUMemory)
+	rootCmd.AddCommand(SUDisk)
 
 	// bond arge
 	var cpuLoad string
@@ -68,6 +77,10 @@ func BondCobra() {
 	var MemorySize string
 	SUMemory.Flags().StringVarP(&MemorySize, "size", "s", "0.8", "memory size, demo: 0.8(80%)")
 	SUMemory.Flags().IntVarP(&RunTime, "time", "t", 0, "run time, Unit:minutes, How long do you want it to run for.")
+	// disk
+	SUDisk.Flags().IntP("size", "s", 2, "Size of each file in GB")
+	SUDisk.Flags().StringP("path", "p", "", "Directory path to write files")
+	SUDisk.Flags().IntP("time", "t", 0, "Duration in minutes (0 for infinite)")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
