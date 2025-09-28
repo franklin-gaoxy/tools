@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hostinfo
+  labels:
+    app: hostinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hostinfo
+  template:
+    metadata:
+      labels:
+        app: hostinfo
+    spec:
+      containers:
+      - name: hostinfo
+        image: registry.cn-hangzhou.aliyuncs.com/kubernetes_install/hostinfo:v0.0.1
+        command: ["hostinfo"]
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
