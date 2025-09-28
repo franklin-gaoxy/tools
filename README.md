@@ -1,6 +1,6 @@
 # Common Tool Collection
 
-
+> All tools support make and make install
 
 ## tools list:
 
