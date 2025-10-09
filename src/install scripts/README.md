@@ -16,4 +16,4 @@ Demo:
 
 Scripts Template:
 
-[template.sh]()
+[template.sh](https://github.com/franklin-gaoxy/tools/blob/main/src/install%20scripts/template.sh)
