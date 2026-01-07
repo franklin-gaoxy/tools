@@ -1,0 +1,24 @@
+# Binaries
+src/hostinfo/hostinfo
+src/localweb/localweb
+src/many host command/mhc
+src/printline/printline
+src/simulate host usage/shub
+src/write disk/write_disk
+src/many host command/ssh-tool
+
+# Build artifacts
+dist/
+temp_dist/
+
+# OS specific
+.DS_Store
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
