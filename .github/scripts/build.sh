@@ -41,11 +41,15 @@ find src -mindepth 1 -maxdepth 1 -type d -print0 | while IFS= read -r -d '' dir;
             # Fallback if no Makefile
             go build -o "$tool_name"
         fi
+
+        # Debug: List files after build to verify binary existence
+        echo "Files after build in $dirname:"
+        ls -la
         
         # Collect Artifacts
-        # Find executable files (heuristic: executable permission, not a directory)
-        # Exclude common source extensions and directories
-        find . -maxdepth 1 -type f -perm +111 | while read bin; do
+        # Find executable files
+        # Using -executable which is supported by GNU find (standard on Linux/Ubuntu)
+        find . -maxdepth 1 -type f -executable | while read bin; do
             filename=$(basename "$bin")
             # Filter out scripts and source files if they happen to be executable
             if [[ "$filename" != *.sh && "$filename" != *.py && "$filename" != *.go && "$filename" != *.mod && "$filename" != *.sum ]]; then
