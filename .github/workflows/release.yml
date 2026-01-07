@@ -1,0 +1,43 @@
+name: Build and Release Tools
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for creating releases
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          check-latest: true
+
+      - name: Build Tools
+        run: |
+          chmod +x .github/scripts/build.sh
+          .github/scripts/build.sh
+
+      - name: Upload Artifacts (Run)
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-tools
+          path: dist/*.zip
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
