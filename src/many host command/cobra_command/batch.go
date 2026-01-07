@@ -17,7 +17,7 @@ func NewBatchCommand() *cobra.Command {
 		Short: "Run in batch mode",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			hosts, err := tools.ReadHosts(File, Group)
+			hosts, err := GetHosts()
 			if err != nil {
 				fmt.Println("Error:", err)
 				return

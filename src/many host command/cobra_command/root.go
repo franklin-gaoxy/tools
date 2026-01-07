@@ -30,7 +30,7 @@ func NewRootCommand() *cobra.Command {
 			flag.Set("logtostderr", "true")
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			hosts, err := tools.ReadHosts(File, Group)
+			hosts, err := GetHosts()
 			if err != nil {
 				fmt.Println("Error:", err)
 				return
@@ -52,6 +52,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.AddCommand(NewParallelCommand())
 	rootCmd.AddCommand(NewSerialCommand())
 	rootCmd.AddCommand(NewBatchCommand())
+	rootCmd.AddCommand(NewScpCommand())
 	rootCmd.AddCommand(NewTestCommand())
 	rootCmd.AddCommand(NewVersionCommand())
 

@@ -10,25 +10,19 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// RunCommand executes a single command on a remote host via SSH.
-// It handles authentication using either SSH keys or passwords.
-// If both are provided, it prioritizes the SSH key but will fall back to the password.
-//
-// host: The target host configuration.
-// cmd: The command string to execute.
-// Returns the combined stdout/stderr output and any error.
-func RunCommand(host HostInfo, cmd string) (string, error) {
+// ConnectSSH establishes an SSH connection to the host.
+func ConnectSSH(host HostInfo) (*ssh.Client, error) {
 	var authMethods []ssh.AuthMethod
 
 	// 1. 优先尝试使用 SSH Key (指定了 ssh_key 字段)
 	if host.KeyPath != "" {
 		key, err := ioutil.ReadFile(host.KeyPath)
 		if err != nil {
-			return "", fmt.Errorf("ssh key file read error: %v", err)
+			return nil, fmt.Errorf("ssh key file read error: %v", err)
 		}
 		signer, err := ssh.ParsePrivateKey(key)
 		if err != nil {
-			return "", fmt.Errorf("ssh key parse error: %v", err)
+			return nil, fmt.Errorf("ssh key parse error: %v", err)
 		}
 		authMethods = append(authMethods, ssh.PublicKeys(signer))
 	}
@@ -50,13 +44,12 @@ func RunCommand(host HostInfo, cmd string) (string, error) {
 	}
 
 	// 如果不是作为旧版私钥文件处理，则作为普通密码添加
-	// 这样如果同时指定了 ssh_key 和 password，两者都会被加入（key 在前）
 	if !isLegacyKey && host.Password != "" {
 		authMethods = append(authMethods, ssh.Password(host.Password))
 	}
 
 	if len(authMethods) == 0 {
-		return "", fmt.Errorf("no authentication methods provided (password or ssh_key)")
+		return nil, fmt.Errorf("no authentication methods provided (password or ssh_key)")
 	}
 
 	config := &ssh.ClientConfig{
@@ -68,7 +61,22 @@ func RunCommand(host HostInfo, cmd string) (string, error) {
 	addr := fmt.Sprintf("%s:%s", host.IP, host.Port)
 	client, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
-		return "", fmt.Errorf("ssh connect error: %v", err)
+		return nil, fmt.Errorf("ssh connect error: %v", err)
+	}
+	return client, nil
+}
+
+// RunCommand executes a single command on a remote host via SSH.
+// It handles authentication using either SSH keys or passwords.
+// If both are provided, it prioritizes the SSH key but will fall back to the password.
+//
+// host: The target host configuration.
+// cmd: The command string to execute.
+// Returns the combined stdout/stderr output and any error.
+func RunCommand(host HostInfo, cmd string) (string, error) {
+	client, err := ConnectSSH(host)
+	if err != nil {
+		return "", err
 	}
 	defer client.Close()
 

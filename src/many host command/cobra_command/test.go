@@ -22,7 +22,8 @@ func NewTestCommand() *cobra.Command {
 			// Test command 也应该支持 group 吗？用户没明确说，但通常工具行为一致比较好
 			// 不过为了严格遵守用户需求“给batch、serial、parallel三个都增加子参数”，暂时不给test加
 			// 但是 ReadHosts 需要两个参数了，这里如果不传 Group 变量，就是传空字符串，表示全部
-			hosts, err := tools.ReadHosts(File, "")
+			// 现在使用 GetHosts()，它会使用 Group 变量，这意味着 Test 也支持 Group 了，这很好
+			hosts, err := GetHosts()
 			if err != nil {
 				fmt.Println("Error:", err)
 				return

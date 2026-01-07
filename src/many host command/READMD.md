@@ -100,14 +100,30 @@ Run commands in batches to control concurrency and load.
 ./ssh-tool batch "yum update -y" -n 10 -g db-servers
 ```
 
-#### 4. Test Connection
+#### 4. SCP File Transfer
+Copy files or directories to remote hosts.
+
+```shell
+./ssh-tool scp <src> <dest> [flags]
+```
+
+**Example:**
+```shell
+# Copy local file to remote /tmp
+./ssh-tool scp ./config.json /tmp/config.json -g web-servers
+
+# Copy directory recursively
+./ssh-tool scp ./dist /var/www/html -g web-servers
+```
+
+#### 5. Test Connection
 Test SSH connectivity and authentication for all (or filtered) hosts without running commands.
 
 ```shell
 ./ssh-tool test
 ```
 
-#### 5. Version
+#### 6. Version
 Show version information.
 
 ```shell
