@@ -1,8 +1,7 @@
 package main
 
-import "many/tools"
+import "many/cobra_command"
 
 func main() {
-	rootcmd := tools.BoundBobraAgrs()
-	tools.ExecuteStart(rootcmd)
+	cobra_command.Execute()
 }

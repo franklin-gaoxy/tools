@@ -1,1 +1,18 @@
-127.0.0.1 test 1qaz@WSX
+# Legacy format example
+# 127.0.0.1 user password
+
+# New format example with groups
+
+[web-servers]
+address=192.168.1.101 user=admin password="secure_password" ssh_key=""
+address=192.168.1.102 user=admin password="" ssh_key="/home/user/.ssh/id_rsa"
+
+[db-servers]
+address=10.0.0.1 user=dbadmin password="db_password" ssh_key=""
+address=10.0.0.2 user=dbadmin password="db_password"
+
+[mixed-group]
+# You can still use legacy format here if it's not starting with key=value, 
+# but parser logic prioritizes "=" check. 
+# It is recommended to use one format per file or per group.
+address=localhost user=root password="" ssh_key=""

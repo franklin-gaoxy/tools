@@ -9,15 +9,21 @@ import (
 	"golang.org/x/term"
 )
 
-// print line ExecutePrintLine("=", 1, "y")
+// ExecutePrintLine prints a separator line across the console width.
+// PrintValue: The character to use for the line (e.g., "=").
+// blankRowValue: If "y", adds a blank line before and after the separator.
 func ExecutePrintLine(PrintValue string, blankRowValue string) {
 	var ConsoleWide int = GetConsoleWide()
 	// print symbol
 	PrintOneLine(PrintValue, ConsoleWide, blankRowValue)
 }
 
-// ExecuteCenter execute cobra center command func.
-// demo ExecuteCenter("hello world!", "=", "y", "y")
+// ExecuteCenter prints text centered in the console, surrounded by separator characters.
+//
+// content: The text to display.
+// symbol: The character to use for padding (e.g., "=").
+// blankRowValue: If "y", adds a blank line before and after the output.
+// PrintInfoValue: If "y", prints debug info about lengths.
 func ExecuteCenter(content string, symbol string, blankRowValue string, PrintInfoValue string) {
 	// get console wide
 	ConsoleWide := GetConsoleWide()
@@ -49,7 +55,11 @@ func ExecuteCenter(content string, symbol string, blankRowValue string, PrintInf
 Print func
 */
 
-// PrintOneLine print one line
+// PrintOneLine prints a full line of the specified character.
+//
+// PrintValue: The character to repeat.
+// ConsoleWide: The width of the line.
+// blankRowValue: If "y", adds blank lines around the output.
 func PrintOneLine(PrintValue string, ConsoleWide int, blankRowValue string) {
 	line := strings.Repeat(PrintValue, ConsoleWide)
 
@@ -62,6 +72,7 @@ func PrintOneLine(PrintValue string, ConsoleWide int, blankRowValue string) {
 	}
 }
 
+// PrintCenter formats and prints the content centered with padding symbols.
 func PrintCenter(PrintValue string, SymbolLength int, SymbolWide int, PrintStr string, blankRowValue string) {
 	SymbolLine := strings.Repeat(PrintValue, SymbolWide)
 	// judge: Print a blank line at the beginning
@@ -87,6 +98,8 @@ func PrintCenter(PrintValue string, SymbolLength int, SymbolWide int, PrintStr s
 Console related code
 */
 
+// GetConsoleWide returns the width of the current terminal.
+// If it's not a terminal (e.g. pipe), it returns a default width of 40.
 func GetConsoleWide() int {
 	// 检查是否存在伪终端 也就是管道符 default使用20宽度
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -103,7 +116,8 @@ func GetConsoleWide() int {
 	return width
 }
 
-// 计算字符串在终端中的显示宽度
+// DisplayWidth calculates the visual width of a string in the terminal.
+// It handles multi-byte characters correctly.
 func DisplayWidth(s string) int {
 	return runewidth.StringWidth(s)
 }
