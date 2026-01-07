@@ -80,8 +80,9 @@ done
 # Create combined zip
 echo "----------------------------------------"
 echo "Creating summary package: all_tools.zip"
-pushd dist > /dev/null
-zip -r all_tools.zip *.zip
+# Package everything in temp_dist (which contains directories like tool_a/, tool_b/)
+pushd temp_dist > /dev/null
+zip -r "../dist/all_tools.zip" .
 popd > /dev/null
 
 echo "Build complete. Artifacts in dist/:"
