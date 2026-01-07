@@ -47,14 +47,15 @@ find src -mindepth 1 -maxdepth 1 -type d -print0 | while IFS= read -r -d '' dir;
         ls -la
         
         # Collect Artifacts
-        # Find executable files
-        # Using -executable which is supported by GNU find (standard on Linux/Ubuntu)
-        find . -maxdepth 1 -type f -executable | while read bin; do
-            filename=$(basename "$bin")
-            # Filter out scripts and source files if they happen to be executable
-            if [[ "$filename" != *.sh && "$filename" != *.py && "$filename" != *.go && "$filename" != *.mod && "$filename" != *.sum ]]; then
-                echo "Found binary: $filename"
-                cp "$bin" "../../$dest_dir/"
+        # Find executable files using standard shell test
+        for file in *; do
+            if [ -f "$file" ] && [ -x "$file" ]; then
+                filename=$(basename "$file")
+                # Filter out scripts and source files
+                if [[ "$filename" != *.sh && "$filename" != *.py && "$filename" != *.go && "$filename" != *.mod && "$filename" != *.sum ]]; then
+                    echo "Found binary: $filename"
+                    cp "$file" "../../$dest_dir/"
+                fi
             fi
         done
         
