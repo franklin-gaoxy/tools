@@ -36,12 +36,14 @@ jobs:
       - name: Upload Artifacts (Run)
         uses: actions/upload-artifact@v4
         with:
-          name: all-tools
+          name: build-artifacts-debug
           path: dist/*.zip
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.zip
+          files: |
+            dist/*.zip
+          fail_on_unmatched_files: true
           generate_release_notes: true
