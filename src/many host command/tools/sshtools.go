@@ -3,9 +3,7 @@ package tools
 import (
 	"fmt"
 	"io/ioutil"
-	"many/tools/printline"
 	"os"
-	"sync"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -89,30 +87,4 @@ func RunCommand(host HostInfo, cmd string) (string, error) {
 	// stdout + stderr
 	output, err := session.CombinedOutput(cmd)
 	return string(output), err
-}
-
-// RunParallel executes a command on multiple hosts concurrently.
-// It uses a goroutine for each host and waits for all to complete.
-func RunParallel(hosts []HostInfo, cmd string) {
-	var wg sync.WaitGroup
-	for _, h := range hosts {
-		wg.Add(1)
-		go func(host HostInfo) {
-			defer wg.Done()
-			out, err := RunCommand(host, cmd)
-			header := fmt.Sprintf("[%s]", host.IP)
-			if err != nil {
-				// 即使报错，也打印 stderr+stdout
-				printline.ExecuteCenter(header, "=", "y", "n")
-				fmt.Println(out)
-				fmt.Printf("Command failed: %v\n", err)
-			} else {
-				// fmt.Printf("%s%s", header, out)
-				printline.ExecuteCenter(header, "=", "y", "n")
-				// printline.ExecutePrintLine("=", "y")
-				fmt.Println(out)
-			}
-		}(h)
-	}
-	wg.Wait()
 }

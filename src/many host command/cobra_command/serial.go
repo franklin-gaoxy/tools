@@ -23,7 +23,7 @@ func NewSerialCommand() *cobra.Command {
 			runSerial(hosts, strings.Join(args, " "))
 		},
 	}
-	cmd.Flags().StringVarP(&Group, "group", "g", "", "target group")
+	cmd.Flags().StringVarP(&Group, "group", "g", "", "target group (default select all)")
 	return cmd
 }
 

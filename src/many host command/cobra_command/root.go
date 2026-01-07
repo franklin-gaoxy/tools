@@ -3,7 +3,6 @@ package cobra_command
 import (
 	"flag"
 	"fmt"
-	"many/tools"
 	"os"
 	"strings"
 
@@ -35,7 +34,7 @@ func NewRootCommand() *cobra.Command {
 				fmt.Println("Error:", err)
 				return
 			}
-			tools.RunParallel(hosts, strings.Join(args, " "))
+			RunParallel(hosts, strings.Join(args, " "))
 		},
 	}
 
@@ -47,7 +46,7 @@ func NewRootCommand() *cobra.Command {
 	// 为了让 root command 也能使用 group 过滤（因为它默认行为是 parallel），我们也可以在这里添加
 	// 但是用户要求给 batch, serial, parallel 增加，root 通常行为跟随 parallel
 	// 如果用户直接运行 ssh-tool -g group cmd，也应该生效
-	rootCmd.Flags().StringVarP(&Group, "group", "g", "", "target group")
+	rootCmd.Flags().StringVarP(&Group, "group", "g", "", "target group (default select all)")
 
 	rootCmd.AddCommand(NewParallelCommand())
 	rootCmd.AddCommand(NewSerialCommand())

@@ -12,6 +12,7 @@ import (
 // It supports a --number flag to specify the batch size.
 func NewBatchCommand() *cobra.Command {
 	var batchSize int
+	var useThreadPool bool
 	cmd := &cobra.Command{
 		Use:   "batch [command]",
 		Short: "Run in batch mode",
@@ -22,11 +23,16 @@ func NewBatchCommand() *cobra.Command {
 				fmt.Println("Error:", err)
 				return
 			}
-			runBatch(hosts, strings.Join(args, " "), batchSize)
+			if useThreadPool {
+				RunParallelWithLimit(hosts, strings.Join(args, " "), batchSize)
+			} else {
+				runBatch(hosts, strings.Join(args, " "), batchSize)
+			}
 		},
 	}
 	cmd.Flags().IntVarP(&batchSize, "number", "n", 5, "batch size")
-	cmd.Flags().StringVarP(&Group, "group", "g", "", "target group")
+	cmd.Flags().BoolVarP(&useThreadPool, "threadpool", "t", false, "use thread pool mode")
+	cmd.Flags().StringVarP(&Group, "group", "g", "", "target group (default select all)")
 	return cmd
 }
 
@@ -39,6 +45,6 @@ func runBatch(hosts []tools.HostInfo, cmd string, batchSize int) {
 			end = len(hosts)
 		}
 		batch := hosts[i:end]
-		tools.RunParallel(batch, cmd)
+		RunParallel(batch, cmd)
 	}
 }

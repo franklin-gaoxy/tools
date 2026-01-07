@@ -14,15 +14,11 @@ import (
 
 // NewTestCommand creates a command to test SSH connectivity to target hosts.
 func NewTestCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "test",
 		Short: "Run test connect",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Test command 也应该支持 group 吗？用户没明确说，但通常工具行为一致比较好
-			// 不过为了严格遵守用户需求“给batch、serial、parallel三个都增加子参数”，暂时不给test加
-			// 但是 ReadHosts 需要两个参数了，这里如果不传 Group 变量，就是传空字符串，表示全部
-			// 现在使用 GetHosts()，它会使用 Group 变量，这意味着 Test 也支持 Group 了，这很好
 			hosts, err := GetHosts()
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -31,6 +27,8 @@ func NewTestCommand() *cobra.Command {
 			testConnection(hosts)
 		},
 	}
+	cmd.Flags().StringVarP(&Group, "group", "g", "", "target group (default select all)")
+	return cmd
 }
 
 // testConnection attempts to establish an SSH connection to each host.

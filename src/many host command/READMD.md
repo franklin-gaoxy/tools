@@ -55,7 +55,7 @@ address=10.0.0.6 port=22 password=dbpass
 
 *   `-f, --file string`: Path to the hosts file (default `"./nodelist"`).
 *   `-v, --verbose int`: Log verbosity level (default `0`).
-*   `-g, --group string`: Target group filter. Only hosts in this group will be targeted.
+*   `-g, --group string`: Target group filter. Only hosts in this group will be targeted (default `""`).
 
 ### Commands
 
@@ -68,6 +68,9 @@ Run commands on all hosts simultaneously.
 ./ssh-tool <command> [flags]
 ```
 
+**Flags:**
+*   `-g, --group string`: Target group (default `""`).
+
 **Example:**
 ```shell
 ./ssh-tool "uptime" -g web-servers
@@ -79,6 +82,9 @@ Run commands on hosts one by one. Useful for debugging or strict ordering.
 ```shell
 ./ssh-tool serial <command> [flags]
 ```
+
+**Flags:**
+*   `-g, --group string`: Target group (default `""`).
 
 **Example:**
 ```shell
@@ -94,10 +100,16 @@ Run commands in batches to control concurrency and load.
 
 **Flags:**
 *   `-n, --number int`: Batch size (default `5`).
+*   `-t, --threadpool bool`: Use thread pool mode (default `false`). If true, maintains `n` concurrent connections; otherwise, executes in batches of `n`.
+*   `-g, --group string`: Target group (default `""`).
 
 **Example:**
 ```shell
+# Run in batches of 10 (wait for all 10 to finish before next batch)
 ./ssh-tool batch "yum update -y" -n 10 -g db-servers
+
+# Run with thread pool of 10 (keep 10 running constantly)
+./ssh-tool batch "sleep 10" -n 10 -t -g db-servers
 ```
 
 #### 4. SCP File Transfer
@@ -106,6 +118,10 @@ Copy files or directories to remote hosts.
 ```shell
 ./ssh-tool scp <src> <dest> [flags]
 ```
+
+**Flags:**
+*   `-n, --number int`: Concurrent limit (default `0` for unlimited).
+*   `-g, --group string`: Target group (default `""`).
 
 **Example:**
 ```shell
@@ -120,8 +136,11 @@ Copy files or directories to remote hosts.
 Test SSH connectivity and authentication for all (or filtered) hosts without running commands.
 
 ```shell
-./ssh-tool test
+./ssh-tool test [flags]
 ```
+
+**Flags:**
+*   `-g, --group string`: Target group (default `""`).
 
 #### 6. Version
 Show version information.
