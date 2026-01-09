@@ -1,23 +1,8 @@
-name: Build and Release Tools
-
-on:
-  push:
-    branches:
-      - main
-      - developer
-    tags:
-      - 'v*'
-  release:
-    types: [created]
-  workflow_dispatch:
-
-jobs:
-  build:
-    name: Build Tools
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -30,42 +15,43 @@ jobs:
           chmod +x .github/scripts/build.sh
           .github/scripts/build.sh
 
-      - name: Check Artifacts
-        run: |
-          echo "Listing dist directory content:"
-          ls -R dist/
-
-      # Upload each tool as a separate artifact for the next job
-      # We upload the whole dist folder to preserve the structure
-      - name: Upload Build Artifacts
+      - name: Upload Artifacts (Run)
         uses: actions/upload-artifact@v4
         with:
-          name: all-tools-dist
-          path: dist/
-          retention-days: 1
+          name: build-artifacts-debug
+          path: dist/*.zip
 
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-    steps:
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: all-tools-dist
-          path: dist
+      - name: Check Artifacts
+        run: |
+          echo "GITHUB_REF=${GITHUB_REF}"
+          echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"
+          echo "Listing dist directory content:"
+          ls -lh dist || true
 
-      - name: Display Downloaded Files
-        run: ls -R dist/
-
-      - name: Create Release and Upload Assets
+      - name: Authenticate gh CLI with token
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # ensure gh exists
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "gh CLI not found. Exiting with error."
+            exit 1
+          fi
+          echo "Logging gh CLI in with GITHUB_TOKEN..."
+          echo "${GITHUB_TOKEN}" | gh auth login --with-token
+          gh auth status
+
+      - name: Release and Upload Assets (using gh)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Files matched by dist/*.zip:"
+          ls -lh dist/*.zip || (echo "No zip files matched; aborting." && exit 1)
+
           echo "Creating release or uploading to existing release..."
-          # The dist directory now contains all the zip files directly
-          gh release create ${{ github.ref_name }} dist/*.zip --generate-notes --verify-tag || \
-          gh release upload ${{ github.ref_name }} dist/*.zip --clobber
+          # Create release if not exists, otherwise upload assets
+          # --notes-file/-F can be used instead of generate-notes for custom notes
+          gh release create "${{ github.ref_name }}" dist/*.zip --generate-notes --verify-tag || \
+          gh release upload "${{ github.ref_name }}" dist/*.zip --clobber
