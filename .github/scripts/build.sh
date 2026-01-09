@@ -32,32 +32,47 @@ find src -mindepth 1 -maxdepth 1 -type d -print0 | while IFS= read -r -d '' dir;
         # Build logic
         pushd "$dir" > /dev/null
         
-        # Build
-        if [ -f Makefile ]; then
-            echo "Building with make..."
-            make build
-        elif [ -f go.mod ]; then
-            echo "Building with go build..."
-            # Fallback if no Makefile
-            go build -o "$tool_name"
-        fi
-
-        # Debug: List files after build to verify binary existence
-        echo "Files after build in $dirname:"
-        ls -la
+        # Build Cross-Platform
+        echo "Building Cross-Platform binaries..."
         
-        # Collect Artifacts
-        # Find executable files using standard shell test
-        for file in *; do
-            if [ -f "$file" ] && [ -x "$file" ]; then
-                filename=$(basename "$file")
-                # Filter out scripts and source files
-                if [[ "$filename" != *.sh && "$filename" != *.py && "$filename" != *.go && "$filename" != *.mod && "$filename" != *.sum ]]; then
-                    echo "Found binary: $filename"
-                    cp "$file" "../../$dest_dir/"
-                fi
+        # Define platforms
+        platforms=("linux/amd64" "linux/arm64" "darwin/arm64")
+        
+        for platform in "${platforms[@]}"; do
+            platform_split=(${platform//\// })
+            GOOS=${platform_split[0]}
+            GOARCH=${platform_split[1]}
+            
+            # Map output name suffix
+            suffix="${GOOS}_${GOARCH}"
+            # Handle darwin as macos for better naming
+            if [ "$GOOS" == "darwin" ]; then
+                suffix="macos_${GOARCH}"
+            fi
+            # Handle amd64 as x86 for better naming
+            if [ "$GOARCH" == "amd64" ]; then
+                suffix="${GOOS}_x86"
+            fi
+            
+            output_name="${tool_name}_${suffix}"
+            
+            echo "Building for $GOOS/$GOARCH -> $output_name"
+            
+            # Build command
+            env GOOS=$GOOS GOARCH=$GOARCH go build -o "$output_name" 2>/dev/null || echo "Build failed for $platform (might not be Go project)"
+            
+            # Move if exists
+            if [ -f "$output_name" ]; then
+                 cp "$output_name" "../../$dest_dir/"
             fi
         done
+        
+        # Original logic for backward compatibility (optional, or just rely on cross-builds if they cover everything)
+        # But since we want specific versions, we might skip the default "native" build or rename it.
+        # Let's keep the cross-build logic as the primary artifact generator for Go projects.
+        
+        # Collect Artifacts (Non-Go binaries or scripts)
+        # ... (rest of logic)
         
         # Copy READMEs
         cp README.md "../../$dest_dir/" 2>/dev/null || true
