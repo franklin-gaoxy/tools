@@ -1,25 +1,52 @@
-# host info
+# Host Info Tool
 
-Default listening on port 8080, requesting different interfaces to return different information.
+A lightweight host information collection server based on Gin framework. It provides RESTful APIs to retrieve system information such as CPU, Memory, Disk, Network, and Host details.
 
-Use parameter - p to specify the port.
+## Build
 
-## Support interfaces
+You can build the binary using `make` or `go build`.
 
-/test: test interface
+```bash
+# Using Make
+make build
 
-/help: display help information.
+# Using Go directly
+cd src && go build -o ../hostinfo main.go
+```
 
-/version: response version info.
+## Usage
 
-/all: print all host node info.
+Run the server specifying the port.
 
-/cpu: print host cpu info and CPU usage rate within there seconds.
+```bash
+./hostinfo [flags] [command]
+```
 
-/memory: print memory info.
+### Global Flags
 
-/network: print host network info.
+- `-p, --port int`: Port to listen on (default `8080`).
+- `--v=int`: Log level verbosity for klog (e.g., `--v=2`).
 
-/node: print host node and os info.
+### Commands
 
-/disk: print host disk and partition info.
+- `version`: Print the version information.
+- `help`: Print help information.
+
+### API Endpoints
+
+Once started (e.g., on port 8080), you can access:
+
+- `GET /version`: Check service status and version.
+- `GET /all`: Get all system information (CPU, Mem, Disk, Net, Node).
+- `GET /cpu`: Get CPU information.
+- `GET /memory`: Get Memory information.
+- `GET /disk`: Get Disk information.
+- `GET /network`: Get Network information.
+- `GET /node`: Get Node/OS information.
+
+### Example
+
+```bash
+# Start server on port 9090 with debug logging
+./hostinfo --port 9090 --v=2
+```

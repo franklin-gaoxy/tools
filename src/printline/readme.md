@@ -1,56 +1,58 @@
-# printline
+# Printline
 
-It will automatically obtain the command window width and output a delimiter with the same width as the command window.
+A CLI tool to generate and print separator lines or centered text in the terminal. Useful for scripts and logs formatting.
 
-## golang edition
+## Build
 
-> This is the first recommended.
+```bash
+# Using Make
+make build
 
-Uses the cobra framework, supports line and center modes, and also supports other parameters. Use -h to view details.
-
-### demo
-
-```shell
-printline line -
-printline line -l 3 - # Output three lines
-printline center "hello world" # Print "hello world" in the center
-./printline center -b y "hello world" -s - -p y # Print in the center, specify symbols, enable detailed information output, print blank lines at the beginning and end
-```
-
-### build
-
-```shell
+# Using Go directly
 go build -o printline main.go
 ```
 
+## Usage
 
-
-
-
-## python edition
-
-code file: [printline.py](https://github.com/franklin-gaoxy/tools/blob/main/src/printline/printline.py)
-
-### instructions
-
-parameters: center ,Center display of specified characters.
-
-parameters: line, Output the specified line of characters.
-
-### demo
-
-```shell
-printline # print help
-printline line = # print one line =
-printline line "   " # print there blank line
-printline center 'hello world' # print centered 'hello world',default line symbol is =
-printline center 'hello world' - # print centered 'hello world',line sumbol is -
+```bash
+./printline [command] [flags]
 ```
 
-### build
+### Commands
 
-```
-pip install pyinstaller
-pyinstaller --onefile printline.py
+#### 1. `line`
+Print a line of specified characters.
+
+- `-l, --lines int`: Number of lines to print (default 1).
+- `-b, --blank row string`: Print blank rows around the line (`y` or `n`, default `n`).
+
+**Example:**
+```bash
+# Print a line of '='
+./printline line
+
+# Print a line of '*'
+./printline line "*"
 ```
 
+#### 2. `center`
+Print text centered in the terminal, padded with symbols.
+
+- `-s, --symbol string`: Specify the padding symbol (default `=`).
+- `-p, --print info string`: Print debug length info (`y` to enable).
+- `-b, --blank row string`: Print blank rows around (`y` or `n`, default `n`).
+
+**Example:**
+```bash
+# Print "HELLO" centered with '='
+./printline center "HELLO"
+
+# Print "WARNING" centered with '!'
+./printline center "WARNING" -s "!"
+```
+
+#### 3. `version`
+Print version information.
+
+#### 4. `completely-center`
+*(Not Implemented)* Reserved for future completely centered printing features.

@@ -1,19 +1,44 @@
+# Local Web Server
 
-# web 本地文件
-将本地目录打开并提供浏览器访问端口和地址“http://localhost:8080/”。
-启动后会自动将本地目录内容展示在浏览器，可以下载文件使用。（就是个简单的nginx下载的功能）
+A simple static file server that exposes a local directory over HTTP. It allows browsing directories and downloading files.
 
-## 功能描述及使用
-服务端：
-1. 启动参数 --path 可以指定一个本地目录
-2. 启动参数 --port 可以指定监听端口
+## Build
 
-```shell
-./server -port :8080 -path /root/
+```bash
+# Using Make
+make build
+
+# Using Go directly
+go build -o localweb main.go
 ```
-也可以什么都不指定直接启动。这样会自动判断系统并使用默认的端口8080.
 
+## Usage
 
+```bash
+./localweb [flags]
+```
 
+### Flags
 
+- `-port string`: Service port (format `:8080`). Default is `:8080`.
+- `-path string`: The local directory path to serve.
+  - Default on Windows: `D:\`
+  - Default on Linux/macOS: `./` (Current directory)
 
+### Features
+
+- **Directory Listing**: Browses subdirectories.
+- **File Download**: direct download for files.
+- **Access Logs**: Prints access logs to stdout.
+
+### Example
+
+```bash
+# Serve the current directory on port 8080
+./localweb
+
+# Serve a specific path on port 9000
+./localweb -port :9000 -path /var/www/html
+```
+
+> **Note**: Access files via `http://localhost:8080/file/YOUR_FILE_PATH`.

@@ -1,150 +1,109 @@
-# SSH Execution Tool
+# Many Host Command (SSH Tool)
 
-A powerful tool to execute commands on multiple remote hosts via SSH. It supports parallel, serial, and batch execution modes.
+A powerful SSH automation tool to execute commands or copy files across multiple hosts in parallel, serially, or in batches.
 
 ## Build
 
-```shell
-go build -o ssh-tool .
-# or
-make
+```bash
+# Using Make
+make build
+
+# Using Go directly
+go build -o mhc main.go
 ```
 
-## Configuration (Nodelist)
+## Configuration (Node List)
 
-Create a `nodelist` file to define your hosts.
+Create a host list file (default: `./nodelist`). The format supports INI-style groups.
 
-### Format
-
-The `nodelist` file supports two formats.
-
-**1. Legacy Format**
-
-Simple space-separated values. If port is omitted, it defaults to 22.
-
-```
-# IP[:Port] User Password
-192.168.1.100 root password123
-192.168.1.101:2222 admin secret
-```
-
-**2. New INI-style Format**
-
-Supports groups and key-value pairs. Field order is flexible.
-- If `user` is omitted, defaults to `root`.
-- If `port` is omitted, defaults to `22`.
-- **Authentication**: Supports both `password` and `ssh_key`. If both are provided, `ssh_key` is prioritized.
+**Example `nodelist`:**
 
 ```ini
 [web-servers]
-address=192.168.1.10 user=root password=pass
-address=192.168.1.11 user=admin port=2022 password=secret
+address=192.168.1.101 user=admin password="your_password"
+address=192.168.1.102 user=root ssh_key="/path/to/private_key"
 
 [db-servers]
-address=10.0.0.5 port=22 ssh_key="/path/to/id_rsa"
-address=10.0.0.6 port=22 password=dbpass
+address=10.0.0.5 user=dbadmin password="db_password"
 ```
+
+> **Authentication Order**: SSH Key > Password. If `ssh_key` is provided, it is used first. If `password` is provided, it is used as a fallback or if no key is specified.
 
 ## Usage
 
-```shell
-./ssh-tool [command] [flags]
+```bash
+./mhc [command] [flags]
 ```
 
 ### Global Flags
 
-*   `-f, --file string`: Path to the hosts file (default `"./nodelist"`).
-*   `-v, --verbose int`: Log verbosity level (default `0`).
-*   `-g, --group string`: Target group filter. Only hosts in this group will be targeted (default `""`).
+- `-f, --file string`: Path to the host list file (default `./nodelist`).
+- `-g, --group string`: Target a specific group defined in the nodelist (default selects all hosts).
+- `-v, --verbose int`: Log verbosity level (e.g., `-v=2` for debug logs).
 
 ### Commands
 
-#### 1. Parallel Execution (Default)
-Run commands on all hosts simultaneously.
+#### 1. Parallel Execution (`parallel`)
+Run commands on all targeted hosts simultaneously.
 
-```shell
-./ssh-tool parallel <command> [flags]
-# or simply (root command defaults to parallel)
-./ssh-tool <command> [flags]
+```bash
+# Run command on all hosts
+./mhc parallel "uname -a"
+
+# Run only on web-servers group
+./mhc parallel "systemctl status nginx" -g web-servers
 ```
 
-**Flags:**
-*   `-g, --group string`: Target group (default `""`).
+#### 2. Serial Execution (`serial`)
+Run commands one by one (useful for rolling updates or debugging).
 
-**Example:**
-```shell
-./ssh-tool "uptime" -g web-servers
+```bash
+./mhc serial "uptime"
 ```
 
-#### 2. Serial Execution
-Run commands on hosts one by one. Useful for debugging or strict ordering.
-
-```shell
-./ssh-tool serial <command> [flags]
-```
-
-**Flags:**
-*   `-g, --group string`: Target group (default `""`).
-
-**Example:**
-```shell
-./ssh-tool serial "date"
-```
-
-#### 3. Batch Execution
+#### 3. Batch Execution (`batch`)
 Run commands in batches to control concurrency and load.
 
-```shell
-./ssh-tool batch <command> [flags]
+- `-n, --number int`: Batch size (default 5).
+- `-t, --threadpool bool`: Use thread pool mode (default false).
+
+```bash
+# Run on 10 hosts at a time
+./mhc batch "yum update -y" -n 10
+
+# Use thread pool for better resource management
+./mhc batch "sleep 5" -n 5 -t
 ```
 
-**Flags:**
-*   `-n, --number int`: Batch size (default `5`).
-*   `-t, --threadpool bool`: Use thread pool mode (default `false`). If true, maintains `n` concurrent connections; otherwise, executes in batches of `n`.
-*   `-g, --group string`: Target group (default `""`).
-
-**Example:**
-```shell
-# Run in batches of 10 (wait for all 10 to finish before next batch)
-./ssh-tool batch "yum update -y" -n 10 -g db-servers
-
-# Run with thread pool of 10 (keep 10 running constantly)
-./ssh-tool batch "sleep 10" -n 10 -t -g db-servers
-```
-
-#### 4. SCP File Transfer
+#### 4. SCP (File Copy) (`scp`)
 Copy files or directories to remote hosts.
 
-```shell
-./ssh-tool scp <src> <dest> [flags]
-```
+- `-n, --number int`: Concurrency limit for SCP (0 for unlimited).
 
-**Flags:**
-*   `-n, --number int`: Concurrent limit (default `0` for unlimited).
-*   `-g, --group string`: Target group (default `""`).
+```bash
+# Syntax: ./mhc scp [src] [dest]
 
-**Example:**
-```shell
-# Copy local file to remote /tmp
-./ssh-tool scp ./config.json /tmp/config.json -g web-servers
+# Copy a file to all hosts
+./mhc scp ./app.conf /etc/app/app.conf
 
 # Copy directory recursively
-./ssh-tool scp ./dist /var/www/html -g web-servers
+./mhc scp ./html/ /var/www/html/
+
+# Copy with concurrency limit (e.g., 5 at a time)
+./mhc scp ./large-file /tmp/ -n 5
 ```
 
-#### 5. Test Connection
-Test SSH connectivity and authentication for all (or filtered) hosts without running commands.
+#### 5. Connectivity Test (`test`)
+Test SSH connectivity to all targeted hosts without running commands.
 
-```shell
-./ssh-tool test [flags]
+```bash
+./mhc test
+./mhc test -g db-servers
 ```
 
-**Flags:**
-*   `-g, --group string`: Target group (default `""`).
+#### 6. Version (`version`)
+Print tool version.
 
-#### 6. Version
-Show version information.
-
-```shell
-./ssh-tool version
+```bash
+./mhc version
 ```
