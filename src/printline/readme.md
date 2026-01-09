@@ -18,15 +18,29 @@ go build -o printline main.go
 ./printline [command] [flags]
 ```
 
-### Commands
+---
 
-#### 1. `line`
+### Command: `line`
+
 Print a line of specified characters.
 
-- `-l, --lines int`: Number of lines to print (default 1).
-- `-b, --blank row string`: Print blank rows around the line (`y` or `n`, default `n`).
+#### Function
+Repeats a character (or string) across the entire width of the terminal.
 
-**Example:**
+#### Flags
+
+##### `-l, --lines int`
+Number of lines.
+- **Default**: 1
+- **Function**: Specifies how many times to repeat the line vertically.
+
+##### `-b, --blank row string`
+Print blank rows.
+- **Values**: `y` (yes), `n` (no)
+- **Default**: `n`
+- **Function**: If set to `y`, adds an empty line before and after the printed line for spacing.
+
+#### Examples
 ```bash
 # Print a line of '='
 ./printline line
@@ -35,14 +49,34 @@ Print a line of specified characters.
 ./printline line "*"
 ```
 
-#### 2. `center`
-Print text centered in the terminal, padded with symbols.
+---
 
-- `-s, --symbol string`: Specify the padding symbol (default `=`).
-- `-p, --print info string`: Print debug length info (`y` to enable).
-- `-b, --blank row string`: Print blank rows around (`y` or `n`, default `n`).
+### Command: `center`
 
-**Example:**
+Print text centered in the terminal.
+
+#### Function
+Calculates the terminal width and prints the provided text in the middle, padding the left and right with a specified symbol.
+
+#### Flags
+
+##### `-s, --symbol string`
+Padding symbol.
+- **Default**: `=`
+- **Function**: The character used to fill the empty space around the centered text.
+
+##### `-p, --print info string`
+Print debug info.
+- **Values**: `y`, `n`
+- **Function**: If set to `y`, prints details about terminal width and string length calculations.
+
+##### `-b, --blank row string`
+Print blank rows.
+- **Values**: `y`, `n`
+- **Default**: `n`
+- **Function**: Adds vertical padding (empty lines) around the output.
+
+#### Examples
 ```bash
 # Print "HELLO" centered with '='
 ./printline center "HELLO"
@@ -51,8 +85,20 @@ Print text centered in the terminal, padded with symbols.
 ./printline center "WARNING" -s "!"
 ```
 
-#### 3. `version`
+---
+
+### Command: `version`
+
 Print version information.
 
-#### 4. `completely-center`
-*(Not Implemented)* Reserved for future completely centered printing features.
+#### Function
+Displays the current version of the tool.
+
+---
+
+### Command: `completely-center`
+
+*(Reserved)*
+
+#### Function
+Currently not implemented. Reserved for future features to center text both vertically and horizontally.

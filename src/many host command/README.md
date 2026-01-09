@@ -16,7 +16,7 @@ go build -o mhc main.go
 
 Create a host list file (default: `./nodelist`). The format supports INI-style groups.
 
-**Example `nodelist`:**
+### Example `nodelist`
 
 ```ini
 [web-servers]
@@ -37,15 +37,33 @@ address=10.0.0.5 user=dbadmin password="db_password"
 
 ### Global Flags
 
-- `-f, --file string`: Path to the host list file (default `./nodelist`).
-- `-g, --group string`: Target a specific group defined in the nodelist (default selects all hosts).
-- `-v, --verbose int`: Log verbosity level (e.g., `-v=2` for debug logs).
+#### `-f, --file string`
+Path to the host list file.
+- **Default**: `./nodelist`
+- **Function**: Specifies which configuration file to load host information from.
 
-### Commands
+#### `-g, --group string`
+Target host group.
+- **Default**: "" (Selects all hosts)
+- **Function**: Filters hosts by the group name defined in the nodelist (e.g., `[web-servers]`).
 
-#### 1. Parallel Execution (`parallel`)
-Run commands on all targeted hosts simultaneously.
+#### `-v, --verbose int`
+Log verbosity level.
+- **Default**: 0
+- **Function**: Controls the detail level of logs. Higher values (e.g., 2) print more debug information.
 
+---
+
+### Command: `parallel`
+
+Run commands on all targeted hosts simultaneously. This is the most common mode for broadcasting commands.
+
+#### Usage
+```bash
+./mhc parallel [command]
+```
+
+#### Examples
 ```bash
 # Run command on all hosts
 ./mhc parallel "uname -a"
@@ -54,19 +72,52 @@ Run commands on all targeted hosts simultaneously.
 ./mhc parallel "systemctl status nginx" -g web-servers
 ```
 
-#### 2. Serial Execution (`serial`)
-Run commands one by one (useful for rolling updates or debugging).
+---
 
+### Command: `serial`
+
+Run commands one by one on targeted hosts.
+
+#### Function
+Executes the command on the first host, waits for it to finish, then proceeds to the next. Useful for rolling restarts or when you need to avoid hitting a shared resource simultaneously.
+
+#### Usage
+```bash
+./mhc serial [command]
+```
+
+#### Examples
 ```bash
 ./mhc serial "uptime"
 ```
 
-#### 3. Batch Execution (`batch`)
+---
+
+### Command: `batch`
+
 Run commands in batches to control concurrency and load.
 
-- `-n, --number int`: Batch size (default 5).
-- `-t, --threadpool bool`: Use thread pool mode (default false).
+#### Function
+Splits the host list into chunks (batches) and executes the command on one batch at a time.
 
+#### Flags
+
+##### `-n, --number int`
+Batch size.
+- **Default**: 5
+- **Function**: Determines how many hosts are processed in one batch.
+
+##### `-t, --threadpool bool`
+Use thread pool mode.
+- **Default**: false
+- **Function**: If enabled, uses a worker pool model instead of simple batching. This is more efficient for large numbers of hosts as it keeps a constant number of concurrent connections active.
+
+#### Usage
+```bash
+./mhc batch [command] [flags]
+```
+
+#### Examples
 ```bash
 # Run on 10 hosts at a time
 ./mhc batch "yum update -y" -n 10
@@ -75,14 +126,29 @@ Run commands in batches to control concurrency and load.
 ./mhc batch "sleep 5" -n 5 -t
 ```
 
-#### 4. SCP (File Copy) (`scp`)
-Copy files or directories to remote hosts.
+---
 
-- `-n, --number int`: Concurrency limit for SCP (0 for unlimited).
+### Command: `scp`
 
+Copy files or directories from the local machine to remote hosts.
+
+#### Function
+Uses SFTP to transfer files. Supports recursive directory copying.
+
+#### Flags
+
+##### `-n, --number int`
+Concurrency limit.
+- **Default**: 0 (Unlimited)
+- **Function**: Limits the number of concurrent file transfers to avoid saturating network bandwidth.
+
+#### Usage
 ```bash
-# Syntax: ./mhc scp [src] [dest]
+./mhc scp [src] [dest]
+```
 
+#### Examples
+```bash
 # Copy a file to all hosts
 ./mhc scp ./app.conf /etc/app/app.conf
 
@@ -93,17 +159,30 @@ Copy files or directories to remote hosts.
 ./mhc scp ./large-file /tmp/ -n 5
 ```
 
-#### 5. Connectivity Test (`test`)
-Test SSH connectivity to all targeted hosts without running commands.
+---
 
+### Command: `test`
+
+Test SSH connectivity to hosts.
+
+#### Function
+Attempts to establish an SSH connection to each targeted host using the provided credentials. It does not execute any command but verifies if the host is reachable and credentials are correct.
+
+#### Usage
 ```bash
 ./mhc test
-./mhc test -g db-servers
 ```
 
-#### 6. Version (`version`)
+---
+
+### Command: `version`
+
 Print tool version.
 
+#### Function
+Displays the current version of the binary.
+
+#### Usage
 ```bash
 ./mhc version
 ```

@@ -24,29 +24,63 @@ Run the server specifying the port.
 
 ### Global Flags
 
-- `-p, --port int`: Port to listen on (default `8080`).
-- `--v=int`: Log level verbosity for klog (e.g., `--v=2`).
+#### `-p, --port int`
+Port to listen on.
+- **Default**: `8080`
+- **Function**: Sets the HTTP port for the web server.
 
-### Commands
+#### `--v=int`
+Log verbosity.
+- **Function**: Sets the logging level for klog. Higher values output more debug logs.
 
-- `version`: Print the version information.
-- `help`: Print help information.
+---
+
+### Command: `version`
+
+Print version information.
+
+#### Function
+Outputs the current version of the application to the console.
+
+---
+
+### Command: `help`
+
+Print help information.
+
+#### Function
+Displays a summary of available commands and flags.
+
+---
 
 ### API Endpoints
 
-Once started (e.g., on port 8080), you can access:
+Once the server is started, you can access the following HTTP endpoints.
 
-- `GET /version`: Check service status and version.
-- `GET /all`: Get all system information (CPU, Mem, Disk, Net, Node).
-- `GET /cpu`: Get CPU information.
-- `GET /memory`: Get Memory information.
-- `GET /disk`: Get Disk information.
-- `GET /network`: Get Network information.
-- `GET /node`: Get Node/OS information.
+#### `GET /version`
+Check service status and version.
+- **Returns**: JSON object with status and version.
 
-### Example
+#### `GET /all`
+Get all system information.
+- **Returns**: A comprehensive JSON containing CPU, Memory, Disk, Network, and Node info.
 
-```bash
-# Start server on port 9090 with debug logging
-./hostinfo --port 9090 --v=2
-```
+#### `GET /cpu`
+Get CPU information.
+- **Returns**: CPU model, cores, frequency, and usage statistics.
+
+#### `GET /memory`
+Get Memory information.
+- **Returns**: Total memory, used memory, free memory, and usage percentage.
+
+#### `GET /disk`
+Get Disk information.
+- **Returns**: List of partitions, mount points, total space, used space, and usage percentage.
+
+#### `GET /network`
+Get Network information.
+- **Returns**: Network interfaces, IP addresses, and I/O statistics.
+
+#### `GET /node`
+Get Node/OS information.
+- **Returns**: Hostname, OS type, kernel version, platform, and uptime.
