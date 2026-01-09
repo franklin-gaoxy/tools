@@ -21,4 +21,4 @@
 
 [host info](https://github.com/franklin-gaoxy/tools/tree/main/src/hostinfo)
 
-[disk not sleep](https://github.com/franklin-gaoxy/tools/tree/main/src/disk_not_sleep)
+[disk not sleep](https://github.com/franklin-gaoxy/tools/blob/main/src/disk_not_sleep/README.md)
