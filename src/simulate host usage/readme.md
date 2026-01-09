@@ -1,61 +1,107 @@
-# Simulate host usage
+# Simulate Host Usage (shub)
 
-## CPU
+A tool to simulate system resource usage, including CPU load, Memory consumption, and Disk I/O. Useful for testing monitoring systems or stress testing.
 
-Simulate host CPU usage and run the CPU to the desired percentage.
+## Build
 
-```shell
-root@zijie:~/workspace/test# ./simulatehostusage runcpu -h
-run cpu
+```bash
+# Using Make
+make build
 
-Usage:
-  run runcpu [flags]
-
-Flags:
-  -h, --help          help for runcpu
-  -l, --load string   cpu load, demo: 0.8(80%) (default "0.8")
-  -t, --time int      run time, Unit:minutes, How long do you want it to run for.
-# -l Specify a float,demo: 0.8,This will increase CPU usage to 80%
-# -t specify a int,demo 10,The program will run for about 10 minutes.
+# Using Go directly
+go build -o shub main.go
 ```
 
-## memory
+## Usage
 
-```shell
-root@zijie:~/workspace/test# ./simulatehostusage memory -h
-simulate use memory
-
-Usage:
-  run memory [flags]
-
-Flags:
-  -h, --help          help for memory
-  -s, --size string   memory size, demo: 0.8(80%) (default "0.8")
-  -t, --time int      run time, Unit:minutes, How long do you want it to run for.
-# -t specify a int,demo 10,The program will run for about 10 minutes.
-# -s specify the size.Supports floating point number methods such as: 0.7 or specifying a specific value such as: 500M 1G 5G, which will occupy a specified size of memory.
+```bash
+./shub [command] [flags]
 ```
 
-## disk and io
+---
 
-```shell
-root@zijie:~/workspace/test# ./main disk 
-Error: failed to create directory: mkdir : no such file or directory
-Usage:
-  run disk [flags]
+### Command: `runcpu`
 
-Flags:
-  -h, --help          help for disk
-  -p, --path string   Directory path to write files
-  -s, --size int      Size of each file in GB (default 2)
-  -t, --time int      Duration in minutes (0 for infinite)
+Simulate CPU load.
 
-failed to create directory: mkdir : no such file or directory
-root@zijie:~/workspace/test# 
+#### Function
+Generates synthetic load on CPU cores to reach a target usage percentage.
+
+#### Flags
+
+##### `-l, --load string`
+Target CPU load.
+- **Default**: `0.8` (80%)
+- **Range**: 0.0 to 1.0
+- **Function**: Sets the target CPU utilization.
+
+##### `-t, --time int`
+Duration.
+- **Default**: 0 (Infinite)
+- **Unit**: Minutes
+- **Function**: How long the simulation should run. 0 means run until manually stopped (Ctrl+C).
+
+#### Examples
+```bash
+# 50% CPU load for 10 minutes
+./shub runcpu -l 0.5 -t 10
 ```
 
-> Can increase the number of disk writes
->
-> At least the - p path parameter needs to be specified.
->
-> Temporary files will be created in this directory and manually deleted after execution.
+---
+
+### Command: `memory`
+
+Simulate Memory usage.
+
+#### Function
+Allocates and holds a specified amount of RAM.
+
+#### Flags
+
+##### `-s, --size string`
+Target Memory usage.
+- **Default**: `0.8` (80%)
+- **Range**: 0.0 to 1.0
+- **Function**: Sets the target percentage of total system memory to occupy.
+
+##### `-t, --time int`
+Duration.
+- **Unit**: Minutes
+- **Function**: How long to hold the memory before releasing it.
+
+#### Examples
+```bash
+# Consume 80% memory
+./shub memory -s 0.8
+```
+
+---
+
+### Command: `disk`
+
+Simulate Disk usage.
+
+#### Function
+Creates files on the disk to consume storage space.
+
+#### Flags
+
+##### `-s, --size int`
+File size.
+- **Unit**: GB
+- **Function**: The size of each file to create.
+
+##### `-p, --path string`
+Output path.
+- **Function**: The directory where the files will be created.
+
+##### `-t, --time int`
+Duration.
+- **Unit**: Minutes
+- **Function**: (Note: For disk usage, this might refer to the duration to keep the files or a loop duration depending on implementation detail. Usually used to clean up after test).
+
+#### Examples
+```bash
+# Create 1GB files in /tmp/test-disk
+./shub disk -s 1 -p /tmp/test-disk
+```
