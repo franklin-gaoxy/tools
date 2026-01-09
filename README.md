@@ -1,6 +1,11 @@
 # Common Tool Collection
 
+[![Download](https://img.shields.io/github/v/release/franklin-gaoxy/tools?label=Download&style=for-the-badge&logo=github)](https://github.com/franklin-gaoxy/tools/releases)
+
 > All tools support make and make install
+> 
+> **[👉 Download Latest Release (All Platforms)](https://github.com/franklin-gaoxy/tools/releases)**  
+> Supports: Linux (x86/ARM), macOS (ARM)
 
 ## tools list:
 
