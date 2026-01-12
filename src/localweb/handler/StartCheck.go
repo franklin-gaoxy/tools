@@ -26,7 +26,7 @@ func (this *Start) CheckOperationSystem() {
 		// 如果没有传入path 根据系统自动判断默认值
 		if runtime.GOOS == "windows" {
 			*this.Path = "D:\\"
-		} else if runtime.GOOS == "linux" {
+		} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			*this.Path = "./"
 		} else {
 			panic("unable to determine the current operating system type! or pass in the parameter path.")
