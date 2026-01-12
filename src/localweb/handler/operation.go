@@ -12,10 +12,11 @@ import (
 )
 
 type MyHandler struct {
-	Path    string
-	w       http.ResponseWriter
-	r       *http.Request
-	Subpath string
+	Path              string
+	w                 http.ResponseWriter
+	r                 *http.Request
+	Subpath           string
+	DetectContentType bool
 }
 
 func (this *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -111,8 +112,16 @@ func (this MyHandler) ReadFile(CompletePath string) {
 	}
 
 	// 设置响应头及返回数据
-	this.w.Header().Set("Content-Type", "application/octet-stream")
-	this.w.Header().Set("Content-Disposition", "attachment; filename="+filepath.Base(CompletePath))
+	if this.DetectContentType {
+		sniffLen := 512
+		if len(content) < sniffLen {
+			sniffLen = len(content)
+		}
+		this.w.Header().Set("Content-Type", http.DetectContentType(content[:sniffLen]))
+	} else {
+		this.w.Header().Set("Content-Type", "application/octet-stream")
+		this.w.Header().Set("Content-Disposition", "attachment; filename="+filepath.Base(CompletePath))
+	}
 	this.w.Write(content)
 }
 

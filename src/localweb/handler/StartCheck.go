@@ -8,14 +8,18 @@ import (
 
 type Start struct {
 	// 端口和地址
-	Port *string
-	Path *string
+	Port              *string
+	Path              *string
+	DetectContentType *bool
 }
 
 func (this *Start) DetermainStartupParametere() {
 	// 获取输入的变量
 	this.Port = flag.String("port", ":8080", "please input a port,such as format :8080")
 	this.Path = flag.String("path", "nil", "please input a file path. if there is no input,C drive will be used by default under windows system.")
+	this.DetectContentType = new(bool)
+	flag.BoolVar(this.DetectContentType, "d", false, "enable auto detection of Content-Type (full name: -detect-content-type); default false uses application/octet-stream with attachment")
+	flag.BoolVar(this.DetectContentType, "detect-content-type", false, "enable auto detection of Content-Type (short: -d); default false uses application/octet-stream with attachment")
 	flag.Parse()
 	// 检查指定的path是否存在
 	this.CheckOperationSystem()
