@@ -30,10 +30,10 @@ func RunCPULoad(cmd *cobra.Command, args []string) {
 	}
 
 	if targetUsage >= 1 {
-		fmt.Printf("full load operation, run time: %sm\n", RunTime)
+		fmt.Printf("full load operation, run time: %dm\n", RunTime)
 		RunFullCPU(RunTime)
 	} else if targetUsage < 1 {
-		fmt.Printf("percentage load operation, run time: %sm\n", RunTime)
+		fmt.Printf("percentage load operation, run time: %dm\n", RunTime)
 		RunPercentageCPU(targetUsage, RunTime)
 	}
 

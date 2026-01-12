@@ -2,18 +2,21 @@ package handler
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"os"
+	pathpkg "path"
 	"path/filepath"
 	"strings"
 	"time"
 )
 
 type MyHandler struct {
-	Path    string
-	w       http.ResponseWriter
-	r       *http.Request
-	Subpath string
+	Path              string
+	w                 http.ResponseWriter
+	r                 *http.Request
+	Subpath           string
+	DetectContentType bool
 }
 
 func (this *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,22 +30,51 @@ func (this *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 func (this MyHandler) Actuator() {
 	// 获取访问的目录 或者 文件 的路径
-	path := strings.TrimPrefix(this.r.URL.Path, this.Subpath)
-	// 路径拼接
-	CompletePath := filepath.Join(this.Path, path)
+	urlRelPath := strings.TrimPrefix(this.r.URL.Path, this.Subpath)
+	urlRelPath = strings.ReplaceAll(urlRelPath, "\\", "/")
+	urlRelPath = strings.TrimPrefix(urlRelPath, "/")
+
+	rootAbs, err := filepath.Abs(this.Path)
+	if err != nil {
+		http.Error(this.w, "invalid root path", http.StatusInternalServerError)
+		return
+	}
+
+	fsRelPath := filepath.FromSlash(urlRelPath)
+	CompletePath := filepath.Join(rootAbs, fsRelPath)
+	CompletePathAbs, err := filepath.Abs(CompletePath)
+	if err != nil {
+		http.Error(this.w, "invalid path", http.StatusBadRequest)
+		return
+	}
+
+	rootCmp := rootAbs
+	pathCmp := CompletePathAbs
+	if os.PathSeparator == '\\' {
+		rootCmp = strings.ToLower(rootCmp)
+		pathCmp = strings.ToLower(pathCmp)
+	}
+	prefix := rootCmp
+	if !strings.HasSuffix(prefix, string(os.PathSeparator)) {
+		prefix += string(os.PathSeparator)
+	}
+	if pathCmp != rootCmp && !strings.HasPrefix(pathCmp, prefix) {
+		http.Error(this.w, "invalid path", http.StatusBadRequest)
+		return
+	}
 	// 检查文件是否存在
 	var fileCheck CheckFileExists
 	fileCheck = CheckFileExists{}
 	// 如果文件不存在 抛出异常
 	if !fileCheck.Exists(CompletePath) {
-		panic("File or directory not found!")
+		http.NotFound(this.w, this.r)
 		return
 	}
 	var FileInfo os.FileInfo = fileCheck.Info
 
 	// 判断是文件或者目录 目录则继续打开返回结果 文件则直接读取
 	if FileInfo.IsDir() {
-		this.DisplayAllFile(CompletePath, path)
+		this.DisplayAllFile(CompletePath, urlRelPath)
 	} else {
 		this.ReadFile(CompletePath)
 	}
@@ -59,10 +91,12 @@ func (this MyHandler) DisplayAllFile(CompletePath string, path string) {
 	this.w.Write([]byte("<html><body>"))
 	for _, f := range files {
 		fname := f.Name()
+		displayName := fname
 		if f.IsDir() {
-			fname += "/"
+			displayName += "/"
 		}
-		this.w.Write([]byte("<a href=\"" + this.Subpath + "/" + filepath.Join(path, fname) + "\">" + fname + "</a><br>"))
+		href := this.Subpath + "/" + pathpkg.Join(path, fname)
+		this.w.Write([]byte("<a href=\"" + href + "\">" + displayName + "</a><br>"))
 	}
 	this.w.Write([]byte("</body></html>"))
 }
@@ -78,8 +112,16 @@ func (this MyHandler) ReadFile(CompletePath string) {
 	}
 
 	// 设置响应头及返回数据
-	this.w.Header().Set("Content-Type", "application/octet-stream")
-	this.w.Header().Set("Content-Disposition", "attachment; filename="+filepath.Base(CompletePath))
+	if this.DetectContentType {
+		sniffLen := 512
+		if len(content) < sniffLen {
+			sniffLen = len(content)
+		}
+		this.w.Header().Set("Content-Type", http.DetectContentType(content[:sniffLen]))
+	} else {
+		this.w.Header().Set("Content-Type", "application/octet-stream")
+		this.w.Header().Set("Content-Disposition", "attachment; filename="+filepath.Base(CompletePath))
+	}
 	this.w.Write(content)
 }
 
@@ -95,8 +137,12 @@ func (this MyHandler) PrintLog(log string) {
 func (this MyHandler) GetClientIP() string {
 	forwarded := this.r.Header.Get("X-Forwarded-For")
 	if forwarded != "" {
-		ips := strings.Split(forwarded, ", ")
-		return ips[0]
+		ips := strings.Split(forwarded, ",")
+		return strings.TrimSpace(ips[0])
 	}
-	return strings.Split(this.r.RemoteAddr, ":")[0]
+	host, _, err := net.SplitHostPort(this.r.RemoteAddr)
+	if err == nil {
+		return host
+	}
+	return this.r.RemoteAddr
 }

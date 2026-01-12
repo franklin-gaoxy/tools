@@ -7,6 +7,15 @@
 > **[👉 Download Latest Release (All Platforms)](https://github.com/franklin-gaoxy/tools/releases)**  
 > Supports: Linux (x86/ARM), macOS (ARM)
 
+## macOS Usage Note
+If you encounter a "developer cannot be verified" error on macOS, please run the following command to remove the quarantine attribute:
+
+```bash
+xattr -d com.apple.quarantine <your_tool_name>
+# Example:
+xattr -d com.apple.quarantine printline_macos_arm64
+```
+
 ## tools list:
 
 [printline](https://github.com/franklin-gaoxy/tools/blob/main/src/printline/readme.md)
