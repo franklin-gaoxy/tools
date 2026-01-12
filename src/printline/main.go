@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"golang.org/x/term"
 	"os"
 	"strings"
+
+	"github.com/spf13/cobra"
+	"golang.org/x/term"
+
+	"printline/ccrender"
 )
 
 /*
@@ -35,7 +38,7 @@ func BondCobra() {
 		Use:   "version",
 		Short: "Print the version number of printline.",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("printline v0.1.0")
+			fmt.Println("printline v0.1.1")
 		},
 		// 参数不能多余两个 ExactArgs(int) 参数不为n则报错 MinimumNArgs(int) 最少几个参数
 		Args: cobra.MaximumNArgs(2),
@@ -64,26 +67,37 @@ func BondCobra() {
 	// Completely centered
 	var CompletelyCenterCmd = &cobra.Command{
 		Use:   "completely-center",
-		Short: "Completely centered printing string, default symbol is =",
+		Short: "Print text inside a full-width border",
 		Run: func(cmd *cobra.Command, args []string) {
 			CompletelyCenterPrinting(cmd, args)
 		},
-		Args: cobra.MaximumNArgs(1),
+		Args: cobra.ExactArgs(1),
 	}
 
 	// flags
-	var printValue string       // Specify printing symbols
-	var printLines int          // How many lines to print
-	var printInformation string // print length info
-	var BlankRow string
+	var printValue string     // Specify printing symbols
+	var printLines int        // How many lines to print
+	var printInformation bool // print length info
+	var blankRow bool
+	var completelyCenterSymbol string
+	var completelyCenterBlankRow bool
+	var completelyCenterStyle string
+	var completelyCenterHeader string
+	var completelyCenterTemplate string
 
 	// bond command
 	lineCmd.Flags().IntVarP(&printLines, "lines", "l", 1, "How many lines to print.")
-	lineCmd.Flags().StringVarP(&BlankRow, "blank row", "b", "n", "Whether to print a blank line at the beginning and end. If you want to enable it, use 'y'.")
+	lineCmd.Flags().BoolVarP(&blankRow, "blank-row", "b", false, "Print a blank line at the beginning and end.")
 
-	centerCmd.Flags().StringVarP(&printValue, "symbol", "s", "", "specify printing symbols.")
-	centerCmd.Flags().StringVarP(&printInformation, "print info", "p", "", "Print detailed length information, If it needs to be enabled, please specify 'y'")
-	centerCmd.Flags().StringVarP(&BlankRow, "blank row", "b", "n", "Whether to print a blank line at the beginning and end. If you want to enable it, use 'y'.")
+	centerCmd.Flags().StringVarP(&printValue, "symbol", "s", "", "Specify printing symbols.")
+	centerCmd.Flags().BoolVarP(&printInformation, "print-info", "p", false, "Print detailed length information.")
+	centerCmd.Flags().BoolVarP(&blankRow, "blank-row", "b", false, "Print a blank line at the beginning and end.")
+	CompletelyCenterCmd.Flags().BoolP("help", "", false, "help for completely-center")
+	CompletelyCenterCmd.Flags().StringVar(&completelyCenterStyle, "style", "box", "Border style: box | ascii | solid")
+	CompletelyCenterCmd.Flags().StringVarP(&completelyCenterTemplate, "template", "t", "", "Template key (overrides --style).")
+	CompletelyCenterCmd.Flags().StringVarP(&completelyCenterSymbol, "symbol", "s", "", "Border symbol (solid style).")
+	CompletelyCenterCmd.Flags().StringVarP(&completelyCenterHeader, "header", "h", "", "Prefix string printed before every output line.")
+	CompletelyCenterCmd.Flags().BoolVarP(&completelyCenterBlankRow, "blank-row", "b", false, "Add blank rows above and below text inside the border.")
 	//centerCmd.Flags().IntVarP(&printLines, "lines", "l", 1, "How many lines to print.")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(lineCmd)
@@ -108,7 +122,7 @@ func ExecutePrintLine(cmd *cobra.Command, args []string) {
 
 	// get args
 	lineValue, err := cmd.Flags().GetInt("lines")
-	blankRowValue, err := cmd.Flags().GetString("blank row")
+	blankRowValue, err := cmd.Flags().GetBool("blank-row")
 	if err != nil {
 		fmt.Printf("Failed to obtain parameters!\n%s", err)
 		os.Exit(1)
@@ -133,8 +147,8 @@ func ExecutePrintLine(cmd *cobra.Command, args []string) {
 func ExecuteCenter(cmd *cobra.Command, args []string) {
 	// get cobra args
 	strValue, err := cmd.Flags().GetString("symbol")
-	PrintInfoValue, err := cmd.Flags().GetString("print info")
-	blankRowValue, err := cmd.Flags().GetString("blank row")
+	PrintInfoValue, err := cmd.Flags().GetBool("print-info")
+	blankRowValue, err := cmd.Flags().GetBool("blank-row")
 	if err != nil {
 		fmt.Printf("Failed to obtain parameters!\n%s", err)
 	}
@@ -169,7 +183,7 @@ func ExecuteCenter(cmd *cobra.Command, args []string) {
 	}
 
 	// print info
-	if PrintInfoValue == "y" {
+	if PrintInfoValue {
 		cmd.Printf("Console Length: %d, String Length: %d, Symbol Length: %d\n",
 			ConsoleWide, textLength, SymbolWide)
 	}
@@ -177,7 +191,64 @@ func ExecuteCenter(cmd *cobra.Command, args []string) {
 
 // CompletelyCenterPrinting :Completely Center Printing
 func CompletelyCenterPrinting(cmd *cobra.Command, args []string) {
-	fmt.Println("function not implemented ...")
+	borderStyle, err := cmd.Flags().GetString("style")
+	borderTemplate, err := cmd.Flags().GetString("template")
+	borderSymbol, err := cmd.Flags().GetString("symbol")
+	headerPrefix, err := cmd.Flags().GetString("header")
+	blankRowValue, err := cmd.Flags().GetBool("blank-row")
+	if err != nil {
+		fmt.Printf("Failed to obtain parameters!\n%s", err)
+		os.Exit(1)
+	}
+
+	if cmd.Flags().Changed("symbol") && !cmd.Flags().Changed("style") {
+		borderStyle = "solid"
+	}
+
+	if cmd.Flags().Changed("template") {
+		borderStyle = borderTemplate
+	}
+
+	ConsoleWide := GetConsoleWide()
+	availableWidth, ok := ccrender.ComputeAvailableWidth(ConsoleWide, headerPrefix)
+	if !ok {
+		cmd.Println("Header prefix is too long for the current terminal width.")
+		os.Exit(1)
+	}
+	if availableWidth < 4 {
+		cmd.Println("Terminal width is too small.")
+		os.Exit(1)
+	}
+
+	innerWidth := availableWidth - 2
+	textRunes := []rune(args[0])
+	if len(textRunes) > innerWidth {
+		textRunes = textRunes[:innerWidth]
+	}
+
+	text := string(textRunes)
+	leftPadding := 0
+	if innerWidth > len(textRunes) {
+		leftPadding = (innerWidth - len(textRunes)) / 2
+	}
+	rightPadding := innerWidth - len(textRunes) - leftPadding
+
+	lines, err := ccrender.Render(borderStyle, ccrender.Config{
+		TotalWidth:   availableWidth,
+		Text:         text,
+		BlankRow:     blankRowValue,
+		LeftPadding:  leftPadding,
+		RightPadding: rightPadding,
+		Symbol:       borderSymbol,
+	})
+	if err != nil {
+		cmd.Println(err.Error())
+		os.Exit(1)
+	}
+
+	for _, line := range lines {
+		fmt.Println(headerPrefix + line)
+	}
 }
 
 /*
@@ -185,10 +256,10 @@ Print func
 */
 
 // PrintOneLine print one line
-func PrintOneLine(PrintValue string, ConsoleWide int, blankRowValue string) {
+func PrintOneLine(PrintValue string, ConsoleWide int, blankRowValue bool) {
 	line := strings.Repeat(PrintValue, ConsoleWide)
 
-	if blankRowValue == "y" {
+	if blankRowValue {
 		fmt.Println()
 		fmt.Println(line)
 		fmt.Println()
@@ -197,10 +268,10 @@ func PrintOneLine(PrintValue string, ConsoleWide int, blankRowValue string) {
 	}
 }
 
-func PrintCenter(PrintValue string, SymbolLength int, SymbolWide int, PrintStr string, blankRowValue string) {
+func PrintCenter(PrintValue string, SymbolLength int, SymbolWide int, PrintStr string, blankRowValue bool) {
 	SymbolLine := strings.Repeat(PrintValue, SymbolWide)
 	// judge: Print a blank line at the beginning
-	if blankRowValue == "y" {
+	if blankRowValue {
 		fmt.Println()
 	}
 
@@ -213,7 +284,7 @@ func PrintCenter(PrintValue string, SymbolLength int, SymbolWide int, PrintStr s
 	}
 
 	// Determine whether to print a blank line at the end
-	if blankRowValue == "y" {
+	if blankRowValue {
 		fmt.Println()
 	}
 }
