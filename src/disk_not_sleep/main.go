@@ -84,7 +84,7 @@ func newRootCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&configPath, "config", "f", "", "config file path")
 	cmd.Flags().BoolVar(&enableTray, "tray", true, "run minimized in system tray")
 
-	cmd.SetHelpTemplate(fmt.Sprintf("%s\n\nFlags:\n  -f, --config string   config file path\n\nConfig keys:\n  tmp_file_path: directory to create/write keep-alive file\n  tmp_file_name: keep-alive file name\n  time_interval: duration like 180s, 5m\n  log_level: debug|info|warn|error\n  log_file_path: directory to write log file\n  log_file_prefix: log file name prefix\n", cmd.HelpTemplate()))
+	cmd.SetHelpTemplate(fmt.Sprintf("%s\n\nConfig keys:\n  tmp_file_path: directory to create/write keep-alive file\n  tmp_file_name: keep-alive file name\n  time_interval: duration like 180s, 5m\n  log_level: debug|info|warn|error\n  log_file_path: directory to write log file\n  log_file_prefix: log file name prefix\n", cmd.HelpTemplate()))
 
 	return cmd
 }
