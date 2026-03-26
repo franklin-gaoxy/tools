@@ -2,18 +2,20 @@
 
 通过周期性向目标磁盘写入一个极小文件，阻止外置盘/机械盘进入休眠。
 
+该工具主要面向 Windows 使用场景（托盘运行 + 后台写入），Unix/macOS 仅作为兼容性支持。
+
 ## 构建
 
-在当前目录执行：
+在当前目录执行（Unix/macOS 或用于调试）：
 
 ```bash
 go build -o disk_not_sleep .
 ```
 
-Windows（在 Windows 上执行或交叉编译）：
+Windows（推荐，隐藏控制台窗口，托盘运行更自然）：
 
 ```bash
-GOOS=windows GOARCH=amd64 go build -o disk_not_sleep.exe .
+GOOS=windows GOARCH=amd64 go build -ldflags="-H=windowsgui" -o disk_not_sleep.exe .
 ```
 
 ## 使用
