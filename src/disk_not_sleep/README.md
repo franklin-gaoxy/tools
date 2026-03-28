@@ -1,52 +1,83 @@
-# Disk Not Sleep
+# disk_not_sleep
 
-A utility tool designed to prevent hard drives (especially external HDDs) from entering sleep/spin-down mode by periodically performing a lightweight write-delete operation.
+通过周期性向目标磁盘写入一个极小文件，阻止外置盘/机械盘进入休眠。
 
-## Build
+该工具主要面向 Windows 使用场景（托盘运行 + 后台写入），Unix/macOS 仅作为兼容性支持。
+
+## 构建
+
+在当前目录执行（Unix/macOS 或用于调试）：
 
 ```bash
-# Using Go directly
-go build -o disk_not_sleep main.go
+go build -o disk_not_sleep .
 ```
 
-## Usage
+Windows（推荐，隐藏控制台窗口，托盘运行更自然）：
+
+```bash
+GOOS=windows GOARCH=amd64 go build -ldflags="-H=windowsgui" -o disk_not_sleep.exe .
+```
+
+## 使用
 
 ```bash
 ./disk_not_sleep [flags]
 ```
 
-### Global Flags
+### Flags
 
-#### `-p, --path string`
-Target directory path.
-- **Default**: `.` (Current directory)
-- **Function**: Specifies the directory where the temporary keep-alive file will be created. Select the mount point of the disk you want to keep awake.
+#### `-f, --config`
 
-#### `-f, --filename string`
-Temporary file name.
-- **Default**: `tmp_file`
-- **Function**: The name of the temporary file used for the write operation.
+指定配置文件路径。
 
-#### `-t, --time int`
-Interval time.
-- **Default**: `60`
-- **Unit**: Seconds
-- **Function**: How often the write-delete cycle runs.
+- 不传 `-f`：只会查找当前工作目录下是否存在 `disk_not_sleep.yaml`；如果不存在，则使用内置默认配置。
 
----
+#### `--tray`
 
-### Examples
+是否以托盘模式运行（默认 `true`）。
 
-#### Basic Usage
-Prevent the disk mounted at `/mnt/external_drive` from sleeping, writing every 60 seconds (default).
+- `--tray=true`：最小化到托盘运行，托盘菜单里可以点击“退出”。
+- `--tray=false`：前台运行（方便在命令行里调试/观察日志）。
 
-```bash
-./disk_not_sleep -p /mnt/external_drive
+## 配置说明
+
+配置文件为 YAML，顶层 key 为 `disk_not_sleep`：
+
+```yaml
+disk_not_sleep:
+  tmp_file_path: "/path/to/disk"
+  tmp_file_name: "disk_not_sleep"
+  time_interval: "180s"
+  log_level: "info"
+  log_file_path: "/path/to/logs"
+  log_file_prefix: "disk_not_sleep"
 ```
 
-#### Custom Interval and Filename
-Write to `/Volumes/MyDisk` every 5 minutes (300 seconds) using a custom filename `.keep_alive`.
+- `tmp_file_path`：要在哪个目录下创建/写入临时文件，不存在则创建。
+- `tmp_file_name`：临时文件名，最终写入位置为 `tmp_file_path/tmp_file_name`。
+- `time_interval`：间隔时间（Go `time.ParseDuration` 格式，如 `180s`、`5m`）。
+- `log_level`：日志级别（`debug|info|warn|error`），用于设置 klog 的详细程度。
+- `log_file_path`：日志输出目录；每次启动都会创建一个新日志文件。
+- `log_file_prefix`：日志文件名前缀；文件名为 `<prefix>_<启动时间>.log`。
+
+## 示例
+
+### 1) 前台运行（推荐先这样验证配置）
 
 ```bash
-./disk_not_sleep -p /Volumes/MyDisk -t 300 -f .keep_alive
+./disk_not_sleep --tray=false -f ./disk_not_sleep.yaml
+```
+
+### 2) 使用默认配置文件名（不传 -f）
+
+把配置文件放到当前目录并命名为 `disk_not_sleep.yaml`：
+
+```bash
+./disk_not_sleep --tray=false
+```
+
+### 3) 托盘运行
+
+```bash
+./disk_not_sleep -f ./disk_not_sleep.yaml
 ```

@@ -1,0 +1,7 @@
+disk_not_sleep:
+  tmp_file_path: 'D:\system disk'
+  tmp_file_name: "disk_not_sleep"
+  time_interval: "180s"
+  log_level: "info"
+  log_file_path: 'D:\system disk'
+  log_file_prefix: "disk_not_sleep"

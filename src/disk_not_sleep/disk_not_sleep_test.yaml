@@ -1,0 +1,8 @@
+disk_not_sleep:
+  tmp_file_path: "/tmp/disk_not_sleep_test"
+  tmp_file_name: "keepalive"
+  time_interval: "1s"
+  log_level: "debug"
+  log_file_path: "/tmp/disk_not_sleep_logs"
+  log_file_prefix: "disk_not_sleep"
+
