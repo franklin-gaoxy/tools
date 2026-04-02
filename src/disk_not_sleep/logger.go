@@ -31,12 +31,15 @@ func newLogger(cfg DiskNotSleepConfig) (func(), string, error) {
 
 	logDir := strings.TrimSpace(cfg.LogFilePath)
 	if logDir == "" {
-		klog.SetOutput(writer)
-		return closeFn, logFile, nil
+		logDir = defaultLogDir()
 	}
 
 	if err := os.MkdirAll(logDir, 0o755); err != nil {
-		return func() {}, "", fmt.Errorf("create log_file_path: %w", err)
+		fallback := filepath.Join(os.TempDir(), "disk_not_sleep_logs")
+		if ferr := os.MkdirAll(fallback, 0o755); ferr != nil {
+			return func() {}, "", fmt.Errorf("create log_file_path: %w; fallback '%s' failed: %w", err, fallback, ferr)
+		}
+		logDir = fallback
 	}
 
 	prefix := strings.TrimSpace(cfg.LogFilePrefix)
@@ -49,6 +52,21 @@ func newLogger(cfg DiskNotSleepConfig) (func(), string, error) {
 
 	f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
 	if err != nil {
+		fallbackDir := filepath.Join(os.TempDir(), "disk_not_sleep_logs")
+		if ferr := os.MkdirAll(fallbackDir, 0o755); ferr == nil {
+			fallbackPath := filepath.Join(fallbackDir, name)
+			ff, ferr := os.OpenFile(fallbackPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+			if ferr == nil {
+				writer = io.MultiWriter(os.Stdout, ff)
+				klog.SetOutput(writer)
+				logFile = fallbackPath
+				closeFn = func() {
+					klog.Flush()
+					_ = ff.Close()
+				}
+				return closeFn, logFile, nil
+			}
+		}
 		return func() {}, "", fmt.Errorf("open log file: %w", err)
 	}
 

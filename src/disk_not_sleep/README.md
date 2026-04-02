@@ -30,7 +30,7 @@ GOOS=windows GOARCH=amd64 go build -ldflags="-H=windowsgui" -o disk_not_sleep.ex
 
 指定配置文件路径。
 
-- 不传 `-f`：只会查找当前工作目录下是否存在 `disk_not_sleep.yaml`；如果不存在，则使用内置默认配置。
+- 不传 `-f`：优先查找可执行文件同级目录下的 `disk_not_sleep.yaml`，其次查找当前工作目录；如果都不存在，则使用内置默认配置。
 
 #### `--tray`
 
@@ -57,7 +57,7 @@ disk_not_sleep:
 - `tmp_file_name`：临时文件名，最终写入位置为 `tmp_file_path/tmp_file_name`。
 - `time_interval`：间隔时间（Go `time.ParseDuration` 格式，如 `180s`、`5m`）。
 - `log_level`：日志级别（`debug|info|warn|error`），用于设置 klog 的详细程度。
-- `log_file_path`：日志输出目录；每次启动都会创建一个新日志文件。
+- `log_file_path`：日志输出目录；每次启动都会创建一个新日志文件。为空时默认输出到可执行文件同级目录下的 `logs/`。
 - `log_file_prefix`：日志文件名前缀；文件名为 `<prefix>_<启动时间>.log`。
 
 ## 示例
